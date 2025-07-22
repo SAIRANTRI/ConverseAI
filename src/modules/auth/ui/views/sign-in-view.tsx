@@ -17,8 +17,8 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { auth } from "@/lib/auth";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -26,8 +26,7 @@ const formSchema = z.object({
 });
 
 export const SignInView = () => {
-  const router = useRouter();
-  const [error,setError] =  useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -45,18 +44,36 @@ export const SignInView = () => {
       {
         email: data.email,
         password: data.password,
+        callbackURL: "/",
       },
       {
         onSuccess: () => {
           setPending(false);
-          router.push("/");
         },
-        onError: ({error}) => {
+        onError: ({ error }) => {
           setError(error.message);
         },
       }
     );
-    
+  };
+
+  const onSocial = (provider: "github" | "google") => {
+    setError(null);
+    setPending(true);
+    authClient.signIn.social(
+      {
+        provider: provider,
+        callbackURL: "/",
+      },
+      {
+        onSuccess: () => {
+          setPending(false);
+        },
+        onError: ({ error }) => {
+          setError(error.message);
+        },
+      }
+    );
   };
 
   return (
@@ -126,30 +143,35 @@ export const SignInView = () => {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                    <Button
-                      disabled={pending}
-                      variant="outline"
-                      type="button"
-                      className="w-full"
-                      >
-                        Google
-                    </Button>
-                    <Button
-                      disabled={pending}
-                      variant="outline"
-                      type="button"
-                      className="w-full"
-                      >
-                        Github
-                    </Button>
+                  <Button
+                    disabled={pending}
+                    onClick={() => onSocial("google")}
+                    variant="outline"
+                    type="button"
+                    className="w-full"
+                  >
+                    Google
+                  </Button>
+                  <Button
+                    disabled={pending}
+                    onClick={() => onSocial("github")}
+                    variant="outline"
+                    type="button"
+                    className="w-full"
+                  >
+                    Github
+                  </Button>
                 </div>
                 <div className="text-center text-sm text-muted-foreground">
                   Don&apos;t have an account?{" "}
-                  <Link href="/sign-up" className="text-blue-600 underline underline-offset-4">
-                        Sign Up
-                </Link>
-              </div>
+                  <Link
+                    href="/sign-up"
+                    className="text-blue-600 underline underline-offset-4"
+                  >
+                    Sign Up
+                  </Link>
                 </div>
+              </div>
             </form>
           </Form>
 
@@ -160,7 +182,8 @@ export const SignInView = () => {
         </CardContent>
       </Card>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-                By clicking continue, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
       </div>
     </div>
   );
