@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {FaGithub, FaGoogle} from 'react-icons/fa';
 
 const formSchema = z
   .object({
@@ -32,6 +34,7 @@ const formSchema = z
   });
 
 export const SignUpView = () => {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -46,6 +49,7 @@ export const SignUpView = () => {
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
+    
     setError(null);
     setPending(true);
     authClient.signUp.email(
@@ -58,6 +62,7 @@ export const SignUpView = () => {
       {
         onSuccess: () => {
           setPending(false);
+          router.push("/");
         },
         onError: ({ error }) => {
           setError(error.message);
@@ -199,7 +204,7 @@ export const SignUpView = () => {
                     type="button"
                     className="w-full"
                   >
-                    Google
+                    <FaGoogle/>
                   </Button>
                   <Button
                     disabled={pending}
@@ -208,7 +213,7 @@ export const SignUpView = () => {
                     type="button"
                     className="w-full"
                   >
-                    Github
+                    <FaGithub/>
                   </Button>
                 </div>
                 <div className="text-center text-sm text-muted-foreground">
